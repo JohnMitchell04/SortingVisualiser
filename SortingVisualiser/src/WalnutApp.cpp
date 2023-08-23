@@ -9,6 +9,8 @@
 #include "Sorter.h"
 #include "Renderer.h"
 
+std::mutex renderDataMutex;
+
 class ExampleLayer : public Walnut::Layer
 {
 public:
@@ -29,12 +31,21 @@ public:
 			// Update render data
 			m_renderer.SetRenderData(m_sorter.GetData());
 
-			while (m_sorter.IsSorting()) {
-				m_sorter.NextStep();
+			// This will be exectued on a seperate thread so that updating render data can be slowed without affecting UI rendering
+			std::thread sortingThread([&]() {
+				while (m_sorter.IsSorting()) {
+					// Sleep so user can see step
+					std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-				// Update render data
-				m_renderer.SetRenderData(m_sorter.GetData());
-			}
+					m_sorter.NextStep();
+
+					// Update render data
+					m_renderer.SetRenderData(m_sorter.GetData());
+				}
+			});
+
+			// Detach thread so it can execute concurrently
+			sortingThread.detach();
 		}
 
 		ImGui::End();
@@ -59,7 +70,11 @@ public:
 		Walnut::Timer timer;
 
 		m_renderer.OnResize(m_viewportWidth, m_viewportHeight);
+
+		// Ensure we lock render data when rendering
+		renderDataMutex.lock();
 		m_renderer.Render();
+		renderDataMutex.unlock();
 
 		m_lastRenderTime = timer.ElapsedMillis();
 	}

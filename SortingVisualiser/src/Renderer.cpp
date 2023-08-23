@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+
+
 void Renderer::OnResize(uint32_t width, uint32_t height) {
 	if (m_image)
 	{
@@ -18,14 +20,11 @@ void Renderer::OnResize(uint32_t width, uint32_t height) {
 }
 
 void Renderer::Render() {
-	// TODO: Re-write so that this method goes directly into image data
-
 	// Set all values to black
 	std::fill(m_imageData, m_imageData + m_image->GetWidth() * m_image->GetHeight(), 0xff000000);
 
 	// Calculate bar width and bar padding
 	int barWidth = (int)std::floor((double)m_image->GetWidth() / ((m_renderData.size() * 2) + 1));
-
 
 	// Loop through bars and set white where they appear in the image
 	for (int i = 0; i < m_renderData.size(); i++) {
