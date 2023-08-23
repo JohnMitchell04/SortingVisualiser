@@ -30,6 +30,9 @@ namespace Sorting {
 		case Selection:
 			SelectionStep();
 			break;
+		case Insertion:
+			InsertionStep();
+			break;
 		}
 	}
 
@@ -59,6 +62,21 @@ namespace Sorting {
 		m_unsortedList.erase(m_unsortedList.begin() + smallestPos);
 
 		// Data has been fully sorted
-		if (m_unsortedList.size() == 0) { m_isSorting = false; }
+		if (m_unsortedList.empty()) { m_isSorting = false; }
+	}
+
+	void Sorter::InsertionStep() {
+		// Append first element of unsorted list to sorted list
+		m_sortedList.push_back(m_unsortedList[0]);
+		m_unsortedList.erase(m_unsortedList.begin());
+
+		// Loop through sorted list
+		size_t i = m_sortedList.size() - 1;
+		while (i > 0 && m_sortedList[i - 1] > m_sortedList[i]) {
+			std::iter_swap(m_sortedList.begin() + i, m_sortedList.begin() + i - 1);
+			i--;
+		}
+
+		if (m_unsortedList.empty()) { m_isSorting = false; }
 	}
 }

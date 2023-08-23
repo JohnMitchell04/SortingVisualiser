@@ -9,6 +9,8 @@
 #include "Sorter.h"
 #include "Renderer.h"
 
+// TODO: Improve handling of when sorting is already being performed and user requests new algorithm
+
 std::mutex renderDataMutex;
 
 class ExampleLayer : public Walnut::Layer
@@ -23,29 +25,21 @@ public:
 		ImGui::Text("Array Accesses: %d", m_sorter.GetAccesses());
 
 		if (ImGui::Button("Selection Sort")) {
-			m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Selection);
+			// Can't start a new sort as one is currently being performed
+			if (!m_sorter.IsSorting()) {
+				m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Selection);
 
-			// Randomise data
-			m_sorter.RandomiseData();
+				HandleSorting();
+			}
+		}
 
-			// Update render data
-			m_renderer.SetRenderData(m_sorter.GetData());
+		if (ImGui::Button("Insertion Sort")) {
+			// Can't start a new sort as one is currently being performed
+			if (!m_sorter.IsSorting()) {
+				m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Insertion);
 
-			// This will be exectued on a seperate thread so that updating render data can be slowed without affecting UI rendering
-			std::thread sortingThread([&]() {
-				while (m_sorter.IsSorting()) {
-					// Sleep so user can see step
-					std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-					m_sorter.NextStep();
-
-					// Update render data
-					m_renderer.SetRenderData(m_sorter.GetData());
-				}
-			});
-
-			// Detach thread so it can execute concurrently
-			sortingThread.detach();
+				HandleSorting();
+			}
 		}
 
 		ImGui::End();
@@ -77,6 +71,30 @@ public:
 		renderDataMutex.unlock();
 
 		m_lastRenderTime = timer.ElapsedMillis();
+	}
+
+	void HandleSorting() {
+		// Randomise data
+		m_sorter.RandomiseData();
+
+		// Update render data
+		m_renderer.SetRenderData(m_sorter.GetData());
+
+		// This will be exectued on a seperate thread so that updating render data can be slowed without affecting UI rendering
+		std::thread sortingThread([&]() {
+			while (m_sorter.IsSorting()) {
+				// Sleep so user can see step
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+				m_sorter.NextStep();
+
+				// Update render data
+				m_renderer.SetRenderData(m_sorter.GetData());
+			}
+		});
+
+		// Detach thread so it can execute concurrently
+		sortingThread.detach();
 	}
 
 private:

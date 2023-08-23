@@ -7,7 +7,8 @@
 
 namespace Sorting {
 	enum SortingAlgorithms {
-		Selection
+		Selection,
+		Insertion
 	};
 
 	class Sorter {
@@ -28,6 +29,7 @@ namespace Sorting {
 
 	private:
 		void SelectionStep();
+		void InsertionStep();
 
 	private:
 		SortingAlgorithms m_currentAlgorithm = SortingAlgorithms::Selection;
