@@ -26,31 +26,17 @@ public:
 		ImGui::Text("Comparisons: %d", m_sorter.GetComparisons());
 		ImGui::Text("Array Accesses: %d", m_sorter.GetAccesses());
 
+		ImGui::SliderInt("Items to sort", &m_nItems, 1, 1000);
+
 		if (ImGui::Button("Selection Sort")) {
-			// Ensure sorter is not currently sorting before starting
-			// If sorter is sorting, notify detached thread have it exit and wait
-			if (m_sorter.IsSorting()) {
-				m_waitingAlgo = true;
-				std::unique_lock<std::mutex> lock(cancelMutex);
-				conditional.wait(lock);
-			}
-
+			CheckSorting();
 			m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Selection);
-
 			HandleSorting();
 		}
 
 		if (ImGui::Button("Insertion Sort")) {
-			// Ensure sorter is not currently sorting before starting
-			// If sorter is sorting, notify detached thread have it exit and wait
-			if (m_sorter.IsSorting()) {
-				m_waitingAlgo = true;
-				std::unique_lock<std::mutex> lock(cancelMutex);
-				conditional.wait(lock);
-			}
-
+			CheckSorting();
 			m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Insertion);
-
 			HandleSorting();
 		}
 
@@ -85,12 +71,22 @@ public:
 		m_lastRenderTime = timer.ElapsedMillis();
 	}
 
+	void CheckSorting() {
+		// Ensure sorter is not currently sorting before starting
+		// If sorter is sorting, notify detached thread have it exit and wait
+		if (m_sorter.IsSorting()) {
+			m_waitingAlgo = true;
+			std::unique_lock<std::mutex> lock(cancelMutex);
+			conditional.wait(lock);
+		}
+	}
+
 	void HandleSorting() {
 		// Reset sorting time
 		m_totalSortTime = 0.0f;
 
 		// Randomise data
-		m_sorter.RandomiseData();
+		m_sorter.RandomiseData(m_nItems);
 
 		// Update render data
 		m_renderer.SetRenderData(m_sorter.GetData());
@@ -130,6 +126,7 @@ private:
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 	float m_lastRenderTime = 0.0f;
 	float m_totalSortTime = 0.0f;
+	int m_nItems;
 };
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)

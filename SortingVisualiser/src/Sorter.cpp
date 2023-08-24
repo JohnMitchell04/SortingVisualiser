@@ -7,15 +7,15 @@ namespace Sorting {
 		return output;
 	}
 
-	void Sorter::RandomiseData() {
+	void Sorter::RandomiseData(unsigned int number) {
 		// Clear previous data and reset counters
 		m_sortedList.clear();
 		m_unsortedList.clear();
 		m_comparisonCount = 0;
 		m_arrayAccesses = 0;
 
-		// Create a list with integers 1-100
-		for (int i = 1; i < 301; i++) {
+		// Create a list with integers 1-number
+		for (int i = 1; i < number; i++) {
 			m_unsortedList.push_back(i);
 		}
 

@@ -24,7 +24,7 @@ namespace Sorting {
 
 		bool IsSorting() const { return m_isSorting; };
 
-		void RandomiseData();
+		void RandomiseData(unsigned int number);
 
 		void NextStep();
 
