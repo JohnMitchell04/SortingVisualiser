@@ -8,8 +8,9 @@ namespace Sorting {
 	}
 
 	void Sorter::RandomiseData() {
-		// Clear previously sorted data and reset counters
+		// Clear previous data and reset counters
 		m_sortedList.clear();
+		m_unsortedList.clear();
 		m_comparisonCount = 0;
 		m_arrayAccesses = 0;
 

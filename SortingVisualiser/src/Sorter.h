@@ -7,6 +7,7 @@
 
 namespace Sorting {
 	enum SortingAlgorithms {
+		null,
 		Selection,
 		Insertion
 	};
@@ -21,7 +22,7 @@ namespace Sorting {
 		int GetComparisons() const { return m_comparisonCount; }
 		int GetAccesses() const { return m_arrayAccesses; }
 
-		bool IsSorting() { return m_isSorting; };
+		bool IsSorting() const { return m_isSorting; };
 
 		void RandomiseData();
 
@@ -32,13 +33,11 @@ namespace Sorting {
 		void InsertionStep();
 
 	private:
-		SortingAlgorithms m_currentAlgorithm = SortingAlgorithms::Selection;
+		SortingAlgorithms m_currentAlgorithm = SortingAlgorithms::null;
 		std::mt19937 m_randomGenerator;
 		std::vector<int> m_unsortedList;
 		std::vector<int> m_sortedList;
 		bool m_isSorting = false;
-
-		// Might want these
 		int m_comparisonCount = 0, m_arrayAccesses = 0;
 	};
 }

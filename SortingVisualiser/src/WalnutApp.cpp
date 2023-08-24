@@ -10,9 +10,8 @@
 #include "Sorter.h"
 #include "Renderer.h"
 
-// TODO: Improve handling of when sorting is already being performed and user requests new algorithm
-
 std::mutex renderDataMutex;
+std::mutex cancelMutex;
 std::condition_variable conditional;
 
 class ExampleLayer : public Walnut::Layer
@@ -28,21 +27,31 @@ public:
 		ImGui::Text("Array Accesses: %d", m_sorter.GetAccesses());
 
 		if (ImGui::Button("Selection Sort")) {
-			// Can't start a new sort as one is currently being performed
-			if (!m_sorter.IsSorting()) {
-				m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Selection);
-
-				HandleSorting();
+			// Ensure sorter is not currently sorting before starting
+			// If sorter is sorting, notify detached thread have it exit and wait
+			if (m_sorter.IsSorting()) {
+				m_waitingAlgo = true;
+				std::unique_lock<std::mutex> lock(cancelMutex);
+				conditional.wait(lock);
 			}
+
+			m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Selection);
+
+			HandleSorting();
 		}
 
 		if (ImGui::Button("Insertion Sort")) {
-			// Can't start a new sort as one is currently being performed
-			if (!m_sorter.IsSorting()) {
-				m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Insertion);
-
-				HandleSorting();
+			// Ensure sorter is not currently sorting before starting
+			// If sorter is sorting, notify detached thread have it exit and wait
+			if (m_sorter.IsSorting()) {
+				m_waitingAlgo = true;
+				std::unique_lock<std::mutex> lock(cancelMutex);
+				conditional.wait(lock);
 			}
+
+			m_sorter.SetAlgorithm(Sorting::SortingAlgorithms::Insertion);
+
+			HandleSorting();
 		}
 
 		ImGui::End();
@@ -90,6 +99,7 @@ public:
 		std::thread sortingThread([&]() {
 			while (m_sorter.IsSorting()) {
 				if (m_waitingAlgo) {
+					std::lock_guard<std::mutex> lock(cancelMutex);
 					m_waitingAlgo = false;
 					conditional.notify_all();
 					return;
