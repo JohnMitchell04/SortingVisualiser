@@ -1,4 +1,4 @@
-project "WalnutApp"
+project "SortingVisualiser"
    kind "ConsoleApp"
    language "C++"
    cppdialect "C++17"
